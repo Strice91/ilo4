@@ -1,0 +1,18 @@
+[ilo]
+url = 'https://example.com'
+[ilo.temperature]
+path = '/redfish/v1/'
+exclude = []
+
+[mqtt]
+url = 'somebroker.com'
+port = 1883
+base_topic = 'base'
+websocket = false
+keepalive = 60
+delay = 1
+
+[logging]
+file = 'config/ilo4.log'
+level = 'INFO'
+size_kb = '1000'
