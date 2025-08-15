@@ -1,0 +1,9 @@
+services:
+  ilo4_mqtt:
+    build: .
+    volumes:
+      - .config/:/app/config
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    entrypoint: [ "/bin/bash", "-c", "ln -snf /usr/share/zoneinfo/$$TZ /etc/localtime && echo $$TZ > /etc/timezone && cron"]
