@@ -29,3 +29,4 @@ jobs:
           platforms: linux/amd64, linux/arm64, linux/arm/v8
           push: true
           tags: rstrice/ilo4:${{ github.ref_name }}-${{ github.sha }}
+          file: ./Containerfile
