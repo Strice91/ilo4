@@ -1,4 +1,5 @@
 from time import sleep
+from socket import gaierror
 
 from paho.mqtt.client import Client, WebsocketConnectionError
 
@@ -28,7 +29,7 @@ class MQTTClient:
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
         except ConnectionRefusedError as e:
             logger.error(f"Failed to connect to MQTT broker {self.broker}:{self.port} - {e}")
-        except WebsocketConnectionError as e:
+        except (WebsocketConnectionError, gaierror) as e:
             logger.error(f"Websocket Connection Error to MQTT broker {self.broker}:{self.port} - {e}")
 
     def publish(self, topic: str, payload: str):
