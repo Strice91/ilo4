@@ -1,8 +1,10 @@
 services:
   ilo4_mqtt:
-    build: .
+    build:
+      context: .
+      dockerfile: Containerfile
     volumes:
-      - .config/:/app/config
+      - ./config/:/app/config
     restart: unless-stopped
     environment:
       - TZ=Europe/Berlin
