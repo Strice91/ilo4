@@ -11,6 +11,8 @@ class APIClient:
         self.password = password or settings.ilo.password
         self.url = url or settings.ilo.url
         self._connected = False
+        self._client: redfish.redfish_client.RedfishClient
+
         try:
             self._client = redfish.redfish_client(
                 base_url=self.url,
@@ -23,13 +25,18 @@ class APIClient:
             logger.error(f"Failed to connect to ILO {self.url} - {e}")
 
     def login(self):
+        if self._client is None:
+            return
         try:
             self._client.login(auth="session")
             self._connected = True
+            logger.info("Login to ILO successful")
         except (SessionCreationError, AttributeError) as e:
             logger.error(f"Failed to login to ILO {self.url} - {e}")
 
     def logout(self):
+        if self._client is None:
+            return
         self._client.logout()
         self._connected = False
         logger.info(f"Disconnected from ILO {self.url}")

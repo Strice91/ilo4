@@ -30,6 +30,4 @@ RUN pip install -e .
 
 RUN chmod +x /app/run.py
 
-# Add the cron job
-RUN crontab -l | { cat; echo "5 * * * * cd /app/ && ./run.py"; } | crontab -
-
+ENTRYPOINT ["/app/run.py"]

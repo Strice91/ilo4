@@ -16,6 +16,7 @@ settings = Dynaconf(
         Validator("ilo.url", must_exist=True),
         Validator("ilo.user", must_exist=True),
         Validator("ilo.password", must_exist=True),
+        Validator("ilo.poll_interval", default=5),
         Validator("ilo.temperature.path", must_exist=True),
         Validator("ilo.temperature.exclude", default=[]),
         Validator("mqtt.url", must_exist=True),
