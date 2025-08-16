@@ -31,7 +31,7 @@ class APIClient:
             self._client.login(auth="session")
             self._connected = True
             logger.info("Login to ILO successful")
-        except (SessionCreationError, AttributeError) as e:
+        except SessionCreationError as e:
             logger.error(f"Failed to login to ILO {self.url} - {e}")
 
     def logout(self):

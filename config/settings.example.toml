@@ -1,5 +1,6 @@
 [ilo]
 url = 'https://example.com'
+poll_interval = 3
 [ilo.temperature]
 path = '/redfish/v1/'
 exclude = []
