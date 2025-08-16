@@ -62,7 +62,7 @@ def main():
 
     # Start the main task and timer
     logger.info("Starting iLO4 Event Loop")
-    logger.info("Poll Interval: %s", settings.ilo.poll_interval)
+    logger.info("Poll Interval: %smin", settings.ilo.poll_interval)
     task()
 
     # Keep the process alive, but responsive to shutdown_event

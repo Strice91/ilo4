@@ -11,7 +11,7 @@ class APIClient:
         self.password = password or settings.ilo.password
         self.url = url or settings.ilo.url
         self._connected = False
-        self._client: redfish.redfish_client.RedfishClient
+        self._client: redfish.redfish_client.RedfishClient = None
 
         try:
             self._client = redfish.redfish_client(
