@@ -27,7 +27,7 @@ class MQTTClient:
             self._client.connect(self.broker, self.port, self.keepalive)
             self._connected = True
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
-        except ConnectionRefusedError as e:
+        except (ConnectionRefusedError, OSError) as e:
             logger.error(f"Failed to connect to MQTT broker {self.broker}:{self.port} - {e}")
         except (WebsocketConnectionError, gaierror) as e:
             logger.error(f"Websocket Connection Error to MQTT broker {self.broker}:{self.port} - {e}")

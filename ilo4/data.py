@@ -1,4 +1,5 @@
 from ilo4.config import settings
+from redfish.rest.v1 import HttpClient
 
 
 class Temperature:
@@ -21,10 +22,10 @@ class Temperature:
         return f"'{self.name}': {self.value}°C"
 
 
-def extract_temperatures(client) -> list[Temperature]:
+def extract_temperatures(client: HttpClient) -> list[Temperature]:
     response = client.get(settings.ilo.temperature.path)
     temperatures = []
-    for item in response["Temperatures"]:
+    for item in response.get("Temperatures", []):
         t = Temperature(item)
         if t.name in settings.ilo.temperature.exclude:
             continue

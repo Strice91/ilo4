@@ -9,10 +9,9 @@ from ilo4.config import settings
 import signal
 import threading
 import sys
-import time
+from time import sleep
+from datetime import datetime, timedelta
 
-# Global reference to the timer
-timer = None
 shutdown_event = threading.Event()
 
 
@@ -20,58 +19,58 @@ def task():
     logger.info("Polling API and Pushing to MQTT ...")
     with APIClient() as api_client:
         if not api_client.is_connected():
-            logger.error("API client is not connected. Aborting!")
-            return
+            logger.error("API client is not connected.")
         temperatures = extract_temperatures(api_client)
 
     with MQTTClient() as mqtt_client:
         if not mqtt_client.is_connected():
-            logger.error("MQTT client is not connected. Aborting!")
+            logger.error("MQTT client is not connected. Retrying")
+            schedule_task()
             return
+
         for temp in temperatures:
             mqtt_client.publish(temp.name, str(temp.value))
 
-        if any([temp.is_fatal() for temp in temperatures]):
+        if not temperatures:
+            mqtt_client.publish("temperature", "UNKONWN")
+        elif any([temp.is_fatal() for temp in temperatures]):
             mqtt_client.publish("temperature", "FATAL")
         elif any([temp.is_critical() for temp in temperatures]):
             mqtt_client.publish("temperature", "CRITICAL")
         else:
             mqtt_client.publish("temperature", "OK")
 
-    # Reschedule the timer only if not shutting down
-    global timer
-    timer = threading.Timer(settings.ilo.poll_interval * 60, task)
-    timer.start()
+    schedule_task()
+
+
+def schedule_task():
+    if not shutdown_event.is_set():
+        interval = settings.ilo.poll_interval * 60
+        # Reschedule the timer only if not shutting down
+        logger.info(f"Next try at {datetime.now() + timedelta(seconds=interval)}")
+        timer = threading.Timer(interval, task)
+        timer.daemon = True
+        timer.start()
 
 
 def handle_shutdown(signum, frame):
-    logger.info("Shutdown signal received. Cleaning up...")
+    logger.info(f"Shutdown signal {signum} received. Cleaning up...")
     shutdown_event.set()
-
-    global timer
-    if timer:
-        timer.cancel()
-        logger.info("Timer cancelled.")
-
-    sys.exit(0)
+    # sys.exit(0)
 
 
-def main():
+if __name__ == "__main__":
     signal.signal(signal.SIGTERM, handle_shutdown)  # Docker
     signal.signal(signal.SIGINT, handle_shutdown)  # Ctrl+C
 
     # Start the main task and timer
     logger.info("Starting iLO4 Event Loop")
     logger.info("Poll Interval: %smin", settings.ilo.poll_interval)
-    task()
+    schedule_task()
 
     # Keep the process alive, but responsive to shutdown_event
     try:
         while not shutdown_event.is_set():
-            time.sleep(5)
+            sleep(5)
     except KeyboardInterrupt:
-        handle_shutdown(None, None)
-
-
-if __name__ == "__main__":
-    main()
+        handle_shutdown(signal.SIGINT, None)
