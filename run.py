@@ -1,14 +1,13 @@
 #!/usr/local/bin/python3
 from ilo4.api import APIClient
 from ilo4.mqtt import MQTTClient
-from ilo4.data import extract_temperatures
+from ilo4.data import extract_temperatures, extract_system
 
 from ilo4.log import logger
 from ilo4.config import settings
 
 import signal
 import threading
-import sys
 from time import sleep
 from datetime import datetime, timedelta
 
@@ -16,31 +15,40 @@ shutdown_event = threading.Event()
 
 
 def task():
-    logger.info("Polling API and Pushing to MQTT ...")
+    logger.info("### Polling API ... ###")
     with APIClient() as api_client:
         if not api_client.is_connected():
             logger.error("API client is not connected.")
         temperatures = extract_temperatures(api_client)
+        system = extract_system(api_client)
 
+    logger.info("### Pushing to MQTT ... ###")
     with MQTTClient() as mqtt_client:
         if not mqtt_client.is_connected():
-            logger.error("MQTT client is not connected. Retrying")
+            logger.error("MQTT client is not connected. Retrying ...")
             schedule_task()
             return
 
-        for temp in temperatures:
-            mqtt_client.publish(temp.name, str(temp.value))
+        # Publish System Information
+        if system.is_healthy():
+            mqtt_client.publish("system", "OK")
+        else:
+            mqtt_client.publish("system", system.status)
 
+        # Publish Temperature Information
         if not temperatures:
-            mqtt_client.publish("temperature", "UNKONWN")
+            mqtt_client.publish("temperature", "UNKNOWN")
         elif any([temp.is_fatal() for temp in temperatures]):
             mqtt_client.publish("temperature", "FATAL")
         elif any([temp.is_critical() for temp in temperatures]):
             mqtt_client.publish("temperature", "CRITICAL")
         else:
             mqtt_client.publish("temperature", "OK")
+        for temp in temperatures:
+            mqtt_client.publish(temp.name, str(temp.value))
 
     schedule_task()
+    logger.info("### DONE ###")
 
 
 def schedule_task():
@@ -56,7 +64,6 @@ def schedule_task():
 def handle_shutdown(signum, frame):
     logger.info(f"Shutdown signal {signum} received. Cleaning up...")
     shutdown_event.set()
-    # sys.exit(0)
 
 
 if __name__ == "__main__":
