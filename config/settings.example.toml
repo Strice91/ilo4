@@ -19,4 +19,4 @@ delay = 1
 [logging]
 file = 'config/ilo4.log'
 level = 'INFO'
-size_kb = 5
+size_kb = 50

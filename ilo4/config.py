@@ -22,15 +22,16 @@ settings = Dynaconf(
         Validator("ilo.system.path", must_exist=True),
         Validator("mqtt.url", must_exist=True),
         Validator("mqtt.port", default=1883),
-        Validator("mqtt.keepalive", default=60),
+        Validator("mqtt.keepalive", default=60, cast=int),
         Validator("mqtt.client_id", default=None),
         Validator("mqtt.user"),
         Validator("mqtt.password"),
         Validator("mqtt.delay", default=1),
         Validator("mqtt.base_topic", default=None),
+        Validator("mqtt.websocket", default=False, cast=bool),
         Validator("logging.file", default="config/ilo4.log"),
         Validator("logging.level", default="INFO"),
-        Validator("logging.size_kb", default="1000"),
+        Validator("logging.size_kb", default=500, cast=int),
     ],
 )
 settings.validators.validate()

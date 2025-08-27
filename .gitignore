@@ -18,5 +18,6 @@ venv/
 ENV/
 
 # Ignore dynaconf secret files
+config/
 .secrets.toml
 settings.toml
