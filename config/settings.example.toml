@@ -2,14 +2,15 @@
 url = 'https://example.com'
 poll_interval = 3
 [ilo.temperature]
-path = '/redfish/v1/'
-exclude = []
+path = '/redfish/v1/Chassis/1/Thermal'
+exclude = ["13-LOM", "10-PCI 1", "08-Supercap Max", "04-HD Max"]
 [ilo.system]
 path = "/redfish/v1/systems/1"
 
 [mqtt]
 url = 'somebroker.com'
 port = 1883
+client_id = 'ilo4'
 base_topic = 'base'
 websocket = false
 keepalive = 60
