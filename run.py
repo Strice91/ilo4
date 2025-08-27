@@ -14,11 +14,13 @@ from datetime import datetime, timedelta
 shutdown_event = threading.Event()
 
 
-def task():
+def task() -> bool:
+    error = False
     logger.info("### Polling API ... ###")
     with APIClient() as api_client:
         if not api_client.is_connected():
             logger.error("API client is not connected.")
+            error = True
         temperatures = extract_temperatures(api_client)
         system = extract_system(api_client)
 
@@ -26,6 +28,7 @@ def task():
     with MQTTClient() as mqtt_client:
         if not mqtt_client.is_connected():
             logger.error("MQTT client is not connected. Retrying ...")
+            error = True
             schedule_task()
             return
 
@@ -49,6 +52,7 @@ def task():
 
     schedule_task()
     logger.info("### DONE ###")
+    return not error
 
 
 def schedule_task():
@@ -66,18 +70,26 @@ def handle_shutdown(signum, frame):
     shutdown_event.set()
 
 
-if __name__ == "__main__":
+def main():
     signal.signal(signal.SIGTERM, handle_shutdown)  # Docker
     signal.signal(signal.SIGINT, handle_shutdown)  # Ctrl+C
 
     # Start the main task and timer
     logger.info("Starting iLO4 Event Loop")
     logger.info("Poll Interval: %smin", settings.ilo.poll_interval)
-    schedule_task()
 
+    if task():
+        logger.info("Connection successful. Switching to timer based polling ...")
+    else:
+        logger.error("Initial task failed. Check connection! Retrying ...")
+    
     # Keep the process alive, but responsive to shutdown_event
     try:
         while not shutdown_event.is_set():
             sleep(5)
     except KeyboardInterrupt:
         handle_shutdown(signal.SIGINT, None)
+
+
+if __name__ == "__main__":
+    main()
