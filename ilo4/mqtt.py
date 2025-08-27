@@ -1,7 +1,7 @@
 from time import sleep
 from socket import gaierror
 from enum import Enum
-from paho.mqtt.client import Client, WebsocketConnectionError
+from paho.mqtt.client import Client, WebsocketConnectionError, CallbackAPIVersion
 
 from ilo4.config import settings
 from ilo4.log import logger
@@ -41,43 +41,44 @@ class MQTTClient:
         self.keepalive = keepalive or settings.mqtt.keepalive
         self.delay = settings.mqtt.delay
         self.client_id = settings.mqtt.client_id
-
+        # Create MQTT client
         if settings.mqtt.websocket:
-            self._client = Client(client_id=self.client_id, transport="websockets")
+            self._client = Client(CallbackAPIVersion.VERSION2, client_id=self.client_id, transport="websockets", )
             self._client.ws_set_options(path="/")
             self._client.tls_set()
         else:
-            self._client = Client(client_id=self.client_id)
-
+            self._client = Client(CallbackAPIVersion.VERSION2, client_id=self.client_id)
+        # Use authentication if provided
         if settings.mqtt.get("user") is not None and settings.mqtt.get("password") is not None:
             self._client.username_pw_set(settings.mqtt.user, settings.mqtt.password)
-
+        # Connect on connect callback
         self._client.on_connect = self._on_connect
 
     def connect(self):
         try:
+            # Try connecting
             self._client.connect(self.broker, self.port, self.keepalive)
+            # Wait for connection
             self._client.loop_start()
             i = 0
             while not self._client.is_connected() and i < 10: 
                 sleep(1)
                 i += 1
             self._client.loop_stop()
-
             logger.info(f"Connected to MQTT broker {self.broker}:{self.port}")
-            if self.client_id is not None:
-                logger.info(f"Client ID: {self.client_id}")
+            if client_id := self._client._client_id.decode():
+                logger.info(f"Client ID: '{client_id}'")
         except (ConnectionRefusedError, OSError) as e:
             logger.error(f"Failed to connect to MQTT broker {self.broker}:{self.port} - {e}")
         except (WebsocketConnectionError, gaierror) as e:
             logger.error(f"Websocket Connection Error to MQTT broker {self.broker}:{self.port} - {e}")
 
-    def _on_connect(self, client, userdata, flags, rc):
+    def _on_connect(self, client, userdata, flags, rc, props=None):
         status = MQTTStatusCode(rc)
         if status == MQTTStatusCode.SUCCESS:
-            logger.info(f"Connected with result code {rc}: {status.describe()}")
+            logger.info(f"Connected with result code {rc} | {status.describe()}")
         else:
-            logger.error(f"Failed to connect with result code {rc}: {status.describe()}")
+            logger.error(f"Failed to connect with result code {rc} | {status.describe()}")
             
 
     def publish(self, topic: str, payload: str):
