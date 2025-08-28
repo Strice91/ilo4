@@ -21,9 +21,11 @@ The following table describes the individual setting variables. Note the Dynacon
 | MQTT__USER                | User name to authenticate to the MQTT broker                                                   | -               | :heavy_check_mark: | "my_mqtt_user"                  |
 | MQTT__PASSWORD            | Password to authenticate to the MQTT broker                                                    | -               | :heavy_check_mark: | "another_secret"                |
 | MQTT__DELAY               | Sets the delay between the individual sensor values to be sent to avoid package loss (seconds) | 1               | :heavy_check_mark: | 0.5                             |
-| MQTT__WEBSOCKET           | Flag to use websockets instead of standard TCP connection                                      | False           | :heavy_check_mark: | True                            |
-| LOGGING__FILE             | Specifies the file destination for the logger                                                  | config/ilo4.log | :heavy_check_mark: | "some_file_path"                |
-| LOGGING__LEVEL            | Specifies the log level                                                                        | INFO            | :heavy_check_mark: | "WARNING"                       |
+| MQTT__WEBSOCKET           | Flag to use websockets instead of standard TCP connection                                      | False           | :heavy_check_mark: | true                            |
+| LOGGING__STREAM           | Flag to enable logging to stdout                                                               | True            | :heavy_check_mark: | false                           |
+| LOGGING__FILE             | Flag to enable logging to a file destination                                                   | False           | :heavy_check_mark: | true                            |
+| LOGGING__PATH             | Specifies the file destination for the logger                                                  | config/ilo4.log | :heavy_check_mark: | "some_file_path"                |
+| LOGGING__LEVEL            | Specifies the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)                            | INFO            | :heavy_check_mark: | "WARNING"                       |
 | LOGGING__SIZE_KB          | Max size of the log file before it gets rotated (KB)                                           | 500             | :heavy_check_mark: | 1000                            |
 
 # API Reference

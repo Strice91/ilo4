@@ -17,6 +17,8 @@ keepalive = 60
 delay = 1
 
 [logging]
-file = 'config/ilo4.log'
+stream = false
+file = true
+path = 'config/ilo4.log'
 level = 'INFO'
 size_kb = 50
